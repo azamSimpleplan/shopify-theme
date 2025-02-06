@@ -1,0 +1,16 @@
+{
+    "sections": {
+        "template": {
+            "type": "template-blog",
+            "title": "Blog",
+            "description": "This is a blog section.",
+            "settings": {
+                "display": "list",
+                "posts_per_page": 5
+            }
+        }        
+    },
+    "order": [
+        "template"
+    ],
+}

@@ -1,0 +1,474 @@
+<article itemscope itemtype="http://schema.org/BlogPosting">
+  <div class="article-container">
+    <div class="title">
+      <a href="{{ blog.url }}">{{ blog.title }}</a>
+    </div>
+    {% for block in section.blocks %}
+      {% case block.type %}
+        {% when 'article_title' %}
+          <h1 itemprop="headline">{{ article.title }}</h1>
+        {% when 'article_author' %}
+          {% if section.settings.enable_author %}
+            <div itemscope itemtype="http://schema.org/Person ">
+              <small itemprop="author">Author: {{ article.author }}</small>
+            </div>
+          {% endif %}
+        {% when 'article_published_date' %}
+          {% if section.settings.enable_published_date %}
+            <time itemprop="datePublished dateCreated" datetime="{{ article.published_at | date: "%Y-%m-%d" }}">
+              Date: {{ article.published_at | date: format: 'on_date' }}
+            </time>
+          {% endif %}
+        {% when 'featured_image' %}
+          <div itemprop="image">
+            {% if article.image != blank %}
+              <img
+                src="{{ article.image | article_img_url: 'master' }}"
+                alt="{{ article.image.alt }}"
+                height="20%"
+                width="50%"
+              >
+            {% else %}
+              {% assign placeholder_image = 'lifestyle-2' %}
+              <div class="img-section">
+                {{ placeholder_image | placeholder_svg_tag: 'placeholder-img' }}
+              </div>
+            {% endif %}
+          </div>
+        {% when 'article_content' %}
+          <div itemprop="articleBody">
+            <p>{{ article.content | strip_html }}</p>
+          </div>
+        {% else %}
+
+      {% endcase %}
+    {% endfor %}
+  </div>
+</article>
+
+{% if blog.comments_enabled? %}
+  <div class="comment-section">
+    <div class="comments">
+      {% if article.comments_count > 0 %}
+        <div class="what_people_said">
+          <h1>See what people are saying</h1>
+          <div class="comment-wrapper">
+            {% paginate article.comments by 5 %}
+              {% for comment in article.comments %}
+                <div class="ar-comments">
+                  <h3>Name: {{ comment.author }}</h3>
+                  <span>{{ comment.created_at | date: format: 'on_date' }}</span>
+                  <h2>{{ comment.content | strip_html }}</h2>
+                </div>
+              {% endfor %}
+              {% if paginate.pages > 1 %}
+                <div class="pagination">
+                  {{ paginate | default_pagination }}
+                </div>
+              {% endif %}
+            {% endpaginate %}
+          </div>
+        </div>
+      {% else %}
+        <h1>There are no comments for this article</h1>
+      {% endif %}
+    </div>
+
+    <div class="form-section">
+      {% form 'new_comment', article %}
+        <div class="error-container">
+          {% if form.errors %}
+            <p>Oh no! Your comment was not posted.</p>
+            <div class="error-text">
+              {% for error in form.errors %}
+                <p>{{ form.errors.messages[error] }}</p>
+              {% endfor %}
+            </div>
+          {% elsif form.posted_successfully? %}
+            <p>Your comment was posted successfully!</p>
+          {% endif %}
+        </div>
+        <div class="form-div">
+          <div class="input-tag">
+            <label for="comment_author">Name</label>
+            <input type="text" name="comment[author]" id="comment_author" placeholder="Enter your name" required>
+          </div>
+          <div class="input-tag">
+            <label for="comment_email">Email</label>
+            <input type="email" name="comment[email]" id="comment_email" placeholder="abc123@gmail.com" required>
+          </div>
+          <div class="input-tag">
+            <label for="comment_content">Message</label>
+            <textarea name="comment[body]" id="comment_content" placeholder="Your message" required></textarea>
+          </div>
+          <div class="submit-button">
+            <button type="submit" id="h" value="post comment">Post Comment</button>
+          </div>
+        </div>
+      {% endform %}
+    </div>
+  </div>
+{% endif %}
+
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "BlogPosting",
+    "headline": {{ article.title | json }},
+    "articleBody": {{ article.content | strip_html | json }},
+    {% if article.excerpt != blank %}
+      "description": {{ article.excerpt | strip_html | json }},
+    {% endif %}
+    {% if article.image %}
+      "image": {{ article.image | image_url: 'width: 500' | prepend: 'https:' | json }},
+    {% endif %}
+    "datePublished": "{{ article.published_at | date: "%Y-%m-%d" }}",
+    "dateCreated": "{{ article.published_at | date: "%Y-%m-%d" }}",
+    "author": {
+      "@type": "Person",
+      "name": {{ article.author | json }}
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": {{ shop.name | json }}
+    }
+  }
+</script>
+
+<style>
+  h1 {
+    font-size: 2.5rem;
+    color: #333;
+    margin-bottom: 0.5rem;
+    text-align: center;
+    text-transform: capitalize;
+  }
+
+  .img-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .placeholder-img {
+    height: 400px;
+    width: 900px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .error-text {
+    margin: 20px 0px;
+  }
+
+  .error-text p {
+    color: red;
+    margin: 0;
+    padding: 0;
+  }
+
+  small {
+    display: block;
+    text-align: center;
+    font-size: 1rem;
+    color: #666;
+    margin-top: 0.5rem;
+  }
+
+  time {
+    display: block;
+    text-align: center;
+    font-size: 0.9rem;
+    color: #888;
+    margin-bottom: 1.5rem;
+  }
+
+  p {
+    font-size: 1.125rem;
+    color: #444;
+    line-height: 1.8;
+    max-width: 800px;
+    margin: 0 auto 2rem;
+  }
+
+  img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin: 0 auto 2rem;
+  }
+
+  .article-container {
+    background: #fff;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    max-width: 100%;
+    margin: 0 auto;
+    box-sizing: border-box;
+    text-align: left;
+  }
+
+  .form-section {
+    background: #fff;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    max-width: 800px;
+    margin: 2rem auto;
+    box-sizing: border-box;
+  }
+
+  .pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+  }
+
+  .form-div {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .input-tag {
+    margin-bottom: 1.5rem;
+  }
+
+  label {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+
+  input[type='text'],
+  input[type='email'],
+  textarea {
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #fafafa;
+    margin-top: 0.25rem;
+    transition: border 0.3s ease-in-out;
+  }
+
+  input[type='text']:focus,
+  input[type='email']:focus,
+  textarea:focus {
+    border: 1px solid #007bff;
+    outline: none;
+  }
+
+  textarea {
+    height: 150px;
+    resize: vertical;
+  }
+
+  .submit-button {
+    width: 100%;
+    margin-top: 1rem;
+    text-align: center;
+  }
+
+  .submit-button button {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    color: #fff;
+    background-color: #007bff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    width: 100%;
+  }
+
+  .submit-button button:hover {
+    background-color: #0056b3;
+  }
+
+  .submit-button button:focus {
+    outline: none;
+  }
+
+  .comments {
+    padding: 2rem;
+    border-radius: 8px;
+    margin: 2rem auto;
+    max-width: 900px;
+    box-sizing: border-box;
+  }
+
+  .comments h1 {
+    font-size: 2rem;
+    color: #333;
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+
+  .what_people_said {
+    margin-bottom: 2rem;
+  }
+
+  .comment-wrapper {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .ar-comments {
+    background-color: #fff;
+    padding: 1rem;
+    display: flex;
+    align-items: start;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    width: 100%;
+    transition: all 0.3s ease-in-out;
+  }
+
+  .ar-comments:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .ar-comments span {
+    font-size: 0.9rem;
+    color: #666;
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+
+  .ar-comments span:first-child {
+    font-weight: bold;
+  }
+
+  .ar-comments span:last-child {
+    font-size: 0.8rem;
+    color: #888;
+  }
+
+  .ar-comments p {
+    font-size: 1rem;
+    color: #444;
+    line-height: 1.6;
+  }
+
+  .pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+  }
+
+  .pagination .pagination__item {
+    list-style: none;
+    margin: 0 5px;
+  }
+
+  .pagination .pagination__item a {
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    background-color: #007bff;
+    color: #fff;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+  }
+
+  .pagination .pagination__item a:hover {
+    background-color: #0056b3;
+  }
+
+  .pagination .pagination__item a:disabled {
+    background-color: #e0e0e0;
+    cursor: not-allowed;
+  }
+
+  /* Responsive design */
+  @media (max-width: 768px) {
+    .form-section {
+      padding: 1.5rem;
+      margin: 1rem;
+    }
+
+    label {
+      font-size: 0.9rem;
+    }
+
+    input[type='text'],
+    input[type='email'],
+    textarea {
+      font-size: 0.9rem;
+    }
+
+    .submit-button button {
+      padding: 0.75rem 1.25rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .ar-comments {
+      padding: 0.75rem;
+    }
+
+    .ar-comments span {
+      font-size: 0.8rem;
+    }
+
+    .ar-comments p {
+      font-size: 0.9rem;
+    }
+  }
+</style>
+
+{% schema %}{
+  "name": "Template Article",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "enable_author",
+      "default": true,
+      "label": "Display the Author Name"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_published_date",
+      "default": true,
+      "label": "Display Published Date"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "article_title",
+      "name": "Title",
+      "limit": 1
+    },
+    {
+      "type": "article_author",
+      "name": "Author",
+      "limit": 1
+    },
+    {
+      "type": "article_published_date",
+      "name": "Published Date",
+      "limit": 1
+    },
+    {
+      "type": "featured_image",
+      "name": "Thumbnail",
+      "limit": 1
+    },
+    {
+      "type": "article_content",
+      "name": "Content",
+      "limit": 1
+    }
+  ]
+}{% endschema %}

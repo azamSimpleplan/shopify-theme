@@ -1,0 +1,94 @@
+<div class="template-404">
+  <div class="container">
+    <div class="heading">
+      <h1>{{ section.settings.title }}</h1>
+    </div>
+    <div class="subheading">
+      <p>{{ section.settings.subtext_title }}</p>
+    </div>
+    <div class="got-to-home">
+        {% if section.settings.button_url==blank %}
+            {% assign shop_url = shop.secure_url %}
+            {% else %}
+                
+            {% assign shop_url = section.settings.button_url %}
+            
+        {% endif %}
+      <a href="{{shop_url}}">{{ section.settings.button_lable }}</a>
+    </div>
+  </div>
+</div>
+
+
+<style>
+
+  .template-404 {
+    height: 90vh;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 15px;
+  }
+
+  h1 ,p {
+    padding: 0;
+    margin: 0;
+  }
+  .heading {
+    font-size: 80px;
+    font-weight: bold;
+    color: red;
+  }
+  .subheading {
+    font-size: medium;
+    font-weight: 500;
+  }
+
+  .got-to-home{
+    text-align: center;
+    padding: 10px 5px;
+    background-color: aquamarine;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 20px auto;
+  }
+</style>
+
+
+{% schema %}
+  {
+    "name": "Template 404",
+    "tag": "section",
+    "settings": [
+      {
+        "type": "text",
+        "id": "title",
+        "default": "404",
+        "label": "404 Handling title"
+      }, {
+        "type": "text",
+        "id": "subtext_title",
+        "default": "The Page that you're looking for is not found",
+        "label": "404 Handling subtext" 
+      }, {
+        "type": "text",
+        "id": "button_lable",
+        "default": "back to homepage",
+        "label": "button lable"
+      }, {
+        "type": "url",
+        "id": "button_url",
+        "label": "button lable"
+      }
+    ]
+  }
+{% endschema %}
